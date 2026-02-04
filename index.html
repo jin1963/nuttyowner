@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>THBC → NUTTY Vault365</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+  <script src="config.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <h1>THBC → NUTTY Vault365</h1>
+        <div class="sub">Pink & White DApp • MetaMask / Bitget • BSC Mainnet</div>
+      </div>
+      <button id="btnConnect" class="btn primary">Connect Wallet</button>
+    </header>
+
+    <section class="card">
+      <div class="row">
+        <div>
+          <div class="label">Wallet</div>
+          <div id="walletText" class="mono">❌ Not connected</div>
+        </div>
+        <div class="right">
+          <div class="label">Network</div>
+          <div id="netText" class="mono">-</div>
+        </div>
+      </div>
+      <div class="muted">
+        Owner/Treasury:
+        <a id="ownerLink" target="_blank" rel="noreferrer"></a>
+      </div>
+      <div class="muted">
+        Core:
+        <a id="coreLink" target="_blank" rel="noreferrer"></a>
+        &nbsp;•&nbsp; Vault:
+        <a id="vaultLink" target="_blank" rel="noreferrer"></a>
+      </div>
+      <div class="muted">
+        Earnings:
+        <a id="earnLink" target="_blank" rel="noreferrer"></a>
+        &nbsp;•&nbsp; Referral:
+        <a id="refLink" target="_blank" rel="noreferrer"></a>
+        &nbsp;•&nbsp; Binary:
+        <a id="binLink" target="_blank" rel="noreferrer"></a>
+      </div>
+      <div id="status" class="status">Ready.</div>
+    </section>
+
+    <section class="grid">
+      <!-- Referral -->
+      <section class="card">
+        <h2>Referral</h2>
+        <div class="muted">ตั้งผู้แนะนำก่อนซื้อแพ็ก เพื่อให้คอมไหลขึ้นทันที</div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">Referrer Address</div>
+            <input id="refInput" class="input mono" placeholder="0x..." />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnSetRef" class="btn">Set Referrer</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">Your Ref Link</div>
+            <input id="refLinkInput" class="input mono" readonly />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnCopyRef" class="btn ghost">Copy</button>
+          </div>
+        </div>
+
+        <div class="muted">Current Ref: <span id="curRef" class="mono">-</span></div>
+      </section>
+
+      <!-- Packages -->
+      <section class="card">
+        <h2>Buy Package</h2>
+        <div class="muted">Approve USDT ก่อน แล้วค่อย Buy</div>
+
+        <div class="row">
+          <button class="btn ghost" id="btnApprove100">Approve 100</button>
+          <button class="btn ghost" id="btnApprove500">Approve 500</button>
+          <button class="btn ghost" id="btnApprove1000">Approve 1000</button>
+          <button class="btn ghost" id="btnApproveMax">Approve MAX</button>
+        </div>
+
+        <div class="packages">
+          <div class="pkg">
+            <div class="title">Package 0 • 100 USDT</div>
+            <div class="muted">3500 THBC → 3500 NUTTY • APY 0.25%/day • 365 days</div>
+            <button class="btn primary" id="btnBuy0">Buy (0)</button>
+          </div>
+          <div class="pkg">
+            <div class="title">Package 1 • 500 USDT</div>
+            <div class="muted">17500 THBC → 17500 NUTTY • APY 0.35%/day • 365 days</div>
+            <button class="btn primary" id="btnBuy1">Buy (1)</button>
+          </div>
+          <div class="pkg">
+            <div class="title">Package 2 • 1000 USDT</div>
+            <div class="muted">35000 THBC → 35000 NUTTY • APY 0.45%/day • 365 days</div>
+            <button class="btn primary" id="btnBuy2">Buy (2)</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Earnings -->
+      <section class="card">
+        <h2>USDT Earnings</h2>
+        <div class="row">
+          <div>
+            <div class="label">Rank</div>
+            <div id="rankText" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">Active</div>
+            <div id="activeText" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">Cap Remaining</div>
+            <div id="capRemainText" class="mono">-</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <div class="label">Accrued (claimable)</div>
+            <div id="accruedText" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">Claimed</div>
+            <div id="claimedText" class="mono">-</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">Claim Amount (USDT)</div>
+            <input id="claimUsdtInput" class="input mono" placeholder="e.g. 10" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnClaimUSDT" class="btn primary">Claim USDT</button>
+          </div>
+        </div>
+
+        <div class="muted">
+          Overflow Pending: <span id="overflowText" class="mono">-</span>
+          &nbsp;•&nbsp;
+          Inactive Pending: <span id="inactiveText" class="mono">-</span>
+        </div>
+      </section>
+
+      <!-- Binary -->
+      <section class="card">
+        <h2>Binary (Gold Only)</h2>
+        <div class="muted">ตั้ง upline + เลือกซ้าย/ขวา แล้วค่อยสะสม volume จากการซื้อแพ็ก</div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">Upline (Binary)</div>
+            <input id="binUpline" class="input mono" placeholder="0x..." />
+          </div>
+          <div style="width:160px">
+            <div class="label">Side</div>
+            <select id="binSide" class="input">
+              <option value="left">Left</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnSetBinary" class="btn">Set Placement</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <div class="label">Left Vol</div>
+            <div id="leftVol" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">Right Vol</div>
+            <div id="rightVol" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">Paid Weak</div>
+            <div id="paidWeak" class="mono">-</div>
+          </div>
+        </div>
+
+        <button id="btnClaimBinary" class="btn primary">Claim Binary</button>
+      </section>
+    </section>
+
+    <!-- Stakes -->
+    <section class="card">
+      <div class="row">
+        <h2 style="margin:0">My Stakes (NUTTY)</h2>
+        <button id="btnRefresh" class="btn ghost">Refresh</button>
+      </div>
+      <div id="stakesWrap" class="stakes"></div>
+    </section>
+
+    <footer class="foot muted">
+      Built for THBC→NUTTY Vault365 • BSC Mainnet
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
