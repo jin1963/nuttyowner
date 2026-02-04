@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Owner Admin • THBC → NUTTY Vault365</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+  <script src="config.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div>
+        <h1>Owner Admin Panel</h1>
+        <div class="sub">Vault365 • Core • Earnings • Referral • Binary</div>
+      </div>
+      <button id="btnConnect" class="btn primary">Connect Owner</button>
+    </header>
+
+    <section class="card">
+      <div class="row">
+        <div>
+          <div class="label">Wallet</div>
+          <div id="walletText" class="mono">❌ Not connected</div>
+        </div>
+        <div class="right">
+          <div class="label">Network</div>
+          <div id="netText" class="mono">-</div>
+        </div>
+      </div>
+      <div class="muted">
+        Owner/Treasury: <span class="mono" id="ownerAddr">-</span>
+      </div>
+      <div class="muted">
+        Core: <span class="mono" id="coreAddr">-</span> •
+        Vault: <span class="mono" id="vaultAddr">-</span> •
+        Earnings: <span class="mono" id="earnAddr">-</span> •
+        Referral: <span class="mono" id="refAddr">-</span> •
+        Binary: <span class="mono" id="binAddr">-</span>
+      </div>
+      <div id="status" class="status">Ready.</div>
+      <div class="row" style="margin-top:10px">
+        <button id="btnRefresh" class="btn ghost">Refresh Read</button>
+        <button id="btnWireAll" class="btn primary">Wire All (1-click)</button>
+      </div>
+    </section>
+
+    <!-- WIRING CHECK -->
+    <section class="card">
+      <h2>Wiring Checklist (ควรตั้งครั้งเดียว)</h2>
+      <div class="muted">กด “Wire All” ได้เลย หรือจะตั้งทีละอันด้านล่างก็ได้</div>
+      <ul class="muted">
+        <li>Vault: setCore(Core)</li>
+        <li>Core: setVault(Vault), setEarnings(Earnings), setTreasury(Owner/Treasury), setPkgRank(0..2)</li>
+        <li>Earnings: setPackagesCore(Core), setModules(Referral, Binary), setTreasury(Owner/Treasury)</li>
+        <li>Referral: setEarn(Earnings), setVault(Vault)</li>
+        <li>Binary: setEarn(Earnings), setReferral(Referral), setVault(Vault)</li>
+      </ul>
+    </section>
+
+    <section class="grid">
+      <!-- VAULT ADMIN -->
+      <section class="card">
+        <h2>Vault365 Admin</h2>
+
+        <div class="row">
+          <div>
+            <div class="label">core()</div>
+            <div id="v_core" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">thbcToNuttyRate</div>
+            <div id="v_rate" class="mono">-</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <div class="label">reservedTotal (NUTTY)</div>
+            <div id="v_reserved" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">nuttyExcess (NUTTY)</div>
+            <div id="v_excess" class="mono">-</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setCore(address)</div>
+            <input id="inpVaultCore" class="input mono" placeholder="Core address" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnVaultSetCore" class="btn primary">Set Core</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setRate(uint256) (1e18=1:1)</div>
+            <input id="inpRate" class="input mono" placeholder="e.g. 1000000000000000000" />
+            <div class="muted">ตัวอย่าง: 1e18 = 1 THBC : 1 NUTTY</div>
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnVaultSetRate" class="btn">Set Rate</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">ownerWithdrawNuttyExcess(amount)</div>
+            <input id="inpNuttyExcess" class="input mono" placeholder="amount (NUTTY, 18 decimals)" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnWithdrawNuttyExcess" class="btn">Withdraw Excess</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">ownerWithdrawTHBC(amount)</div>
+            <input id="inpWithdrawTHBC_V" class="input mono" placeholder="amount (THBC, 18 decimals)" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnWithdrawTHBC_V" class="btn">Withdraw THBC</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- CORE ADMIN -->
+      <section class="card">
+        <h2>Core Admin</h2>
+
+        <div class="row">
+          <div>
+            <div class="label">vault()</div>
+            <div id="c_vault" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">treasury()</div>
+            <div id="c_treasury" class="mono">-</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <div class="label">earnings()</div>
+            <div id="c_earn" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">commissionPoolBP</div>
+            <div id="c_bp" class="mono">-</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setVault(address)</div>
+            <input id="inpCoreVault" class="input mono" placeholder="Vault address" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnCoreSetVault" class="btn primary">Set Vault</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setEarnings(address)</div>
+            <input id="inpCoreEarn" class="input mono" placeholder="Earnings address" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnCoreSetEarn" class="btn">Set Earnings</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setTreasury(address)</div>
+            <input id="inpCoreTreasury" class="input mono" placeholder="Treasury address" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnCoreSetTreasury" class="btn">Set Treasury</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setCommissionPoolBP(bp) (0-10000)</div>
+            <input id="inpBP" class="input mono" placeholder="e.g. 7000" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnSetBP" class="btn">Set BP</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setBuyEnabled(bool)</div>
+            <select id="selBuyEnabled" class="input">
+              <option value="true">true (ON)</option>
+              <option value="false">false (OFF)</option>
+            </select>
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnSetBuyEnabled" class="btn">Apply</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setPkgRank(pkgId0to2, rank) rank: 1=Bronze,2=Silver,3=Gold</div>
+            <div class="row" style="justify-content:flex-start">
+              <input id="inpPkgId" class="input mono" style="width:120px" placeholder="pkgId 0..2" />
+              <input id="inpRank" class="input mono" style="width:140px" placeholder="rank 1..3" />
+            </div>
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnSetPkgRank" class="btn">Set PkgRank</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">ownerWithdrawUSDT(amount)</div>
+            <input id="inpWithdrawUSDT_C" class="input mono" placeholder="amount (USDT decimals auto)" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnWithdrawUSDT_C" class="btn">Withdraw USDT</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">ownerWithdrawTHBC(amount)</div>
+            <input id="inpWithdrawTHBC_C" class="input mono" placeholder="amount (THBC, 18 decimals)" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnWithdrawTHBC_C" class="btn">Withdraw THBC</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- EARNINGS ADMIN -->
+      <section class="card">
+        <h2>Earnings Admin</h2>
+
+        <div class="row">
+          <div>
+            <div class="label">packagesCore()</div>
+            <div id="e_core" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">treasury()</div>
+            <div id="e_treasury" class="mono">-</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <div class="label">referralModule()</div>
+            <div id="e_ref" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">binaryModule()</div>
+            <div id="e_bin" class="mono">-</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <div class="label">globalAccrued</div>
+            <div id="e_global" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">WINDOW_90D</div>
+            <div id="e_w90" class="mono">-</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setPackagesCore(address)</div>
+            <input id="inpEarnCore" class="input mono" placeholder="Core address" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnEarnSetCore" class="btn primary">Set Core</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setModules(referral, binary)</div>
+            <div class="row" style="justify-content:flex-start">
+              <input id="inpEarnRef" class="input mono" placeholder="Referral addr" />
+              <input id="inpEarnBin" class="input mono" placeholder="Binary addr" />
+            </div>
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnEarnSetModules" class="btn">Set Modules</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setTreasury(address)</div>
+            <input id="inpEarnTreasury" class="input mono" placeholder="Treasury addr" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnEarnSetTreasury" class="btn">Set Treasury</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">ownerWithdrawUSDTExcess(amount)</div>
+            <input id="inpEarnWithdraw" class="input mono" placeholder="amount (USDT decimals auto)" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnEarnWithdraw" class="btn">Withdraw USDT Excess</button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- REFERRAL ADMIN -->
+      <section class="card">
+        <h2>Referral Admin</h2>
+
+        <div class="row">
+          <div>
+            <div class="label">earn()</div>
+            <div id="r_earn" class="mono">-</div>
+          </div>
+          <div>
+            <div class="label">vault()</div>
+            <div id="r_vault" class="mono">-</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setEarn(address)</div>
+            <input id="inpRefEarn" class="input mono" placeholder="Earnings addr" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnRefSetEarn" class="btn primary">Set Earn</button>
+          </div>
+        </div>
+
+        <div class="row">
+          <div style="flex:1">
+            <div class="label">setVault(address)</div>
+            <input id="inpRefVault" class="input mono" placeholder="Vault addr" />
+          </div>
+          <div style="width:180px">
+            <div class="label">&nbsp;</div>
+            <button id="btnRefSetVault" class="btn">Set Vault</button>
+          </div>
+        </div>
+      </section>
+    </section>
+
+    <!-- BINARY ADMIN -->
+    <section class="card">
+      <h2>Binary Admin</h2>
+
+      <div class="row">
+        <div>
+          <div class="label">earn()</div>
+          <div id="b_earn" class="mono">-</div>
+        </div>
+        <div>
+          <div class="label">referral()</div>
+          <div id="b_ref" class="mono">-</div>
+        </div>
+        <div>
+          <div class="label">vault()</div>
+          <div id="b_vault" class="mono">-</div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div style="flex:1">
+          <div class="label">setEarn(address)</div>
+          <input id="inpBinEarn" class="input mono" placeholder="Earnings addr" />
+        </div>
+        <div style="width:180px">
+          <div class="label">&nbsp;</div>
+          <button id="btnBinSetEarn" class="btn primary">Set Earn</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div style="flex:1">
+          <div class="label">setReferral(address)</div>
+          <input id="inpBinRef" class="input mono" placeholder="Referral addr" />
+        </div>
+        <div style="width:180px">
+          <div class="label">&nbsp;</div>
+          <button id="btnBinSetRef" class="btn">Set Referral</button>
+        </div>
+      </div>
+
+      <div class="row">
+        <div style="flex:1">
+          <div class="label">setVault(address)</div>
+          <input id="inpBinVault" class="input mono" placeholder="Vault addr" />
+        </div>
+        <div style="width:180px">
+          <div class="label">&nbsp;</div>
+          <button id="btnBinSetVault" class="btn">Set Vault</button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="foot muted">
+      Owner Admin Panel • Use only with owner wallet
+    </footer>
+  </div>
+
+  <script src="owner.js"></script>
+</body>
+</html>
